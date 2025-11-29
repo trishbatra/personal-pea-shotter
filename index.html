@@ -8,7 +8,9 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #111;
+            background-color: #050505;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(20, 20, 30, 1) 0%, rgba(0, 0, 0, 1) 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             touch-action: none;
@@ -33,7 +35,7 @@
 
         /* Main Menu */
         #main-menu {
-            background: #000;
+            background: rgba(0,0,0,0.95);
             pointer-events: auto;
             justify-content: center;
             align-items: center;
@@ -41,17 +43,14 @@
             display: flex;
         }
         .title {
-            font-size: 5rem;
+            font-size: clamp(2rem, 10vw, 5rem); /* Responsive Font Size */
             color: #ff3333;
             text-transform: uppercase;
-            letter-spacing: 10px;
+            letter-spacing: 0.2em;
             text-shadow: 0 0 30px #ff0000;
             margin-bottom: 50px;
             text-align: center;
-        }
-        /* Responsive Title for Mobile */
-        @media (max-width: 600px) {
-            .title { font-size: 3rem; letter-spacing: 5px; }
+            line-height: 1.2;
         }
 
         .class-container {
@@ -70,6 +69,7 @@
             cursor: pointer;
             transition: all 0.2s;
             background: rgba(255, 255, 255, 0.05);
+            pointer-events: auto;
         }
         .class-card:hover, .class-card:active {
             transform: translateY(-10px);
@@ -104,21 +104,17 @@
             align-items: flex-start;
         }
         .score-box {
-            font-size: 2rem;
+            font-size: clamp(1.2rem, 4vw, 2rem);
             font-weight: bold;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         .health-bar-container {
-            width: 300px;
+            width: clamp(150px, 30vw, 300px);
             height: 20px;
             background: rgba(0,0,0,0.5);
             border: 2px solid #444;
             border-radius: 4px;
             overflow: hidden;
-        }
-        @media (max-width: 600px) {
-            .health-bar-container { width: 150px; }
-            .score-box { font-size: 1.5rem; }
         }
         .health-bar {
             width: 100%;
@@ -128,7 +124,7 @@
         }
         .weapon-display { text-align: right; }
         .weapon-name {
-            font-size: 1.5rem;
+            font-size: clamp(1rem, 4vw, 1.5rem);
             color: #00ffff;
             text-shadow: 0 0 10px #00ffff;
         }
@@ -167,7 +163,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 5rem;
+            /* Responsive Font scaling */
+            font-size: clamp(2rem, 8vw, 6rem); 
             font-weight: 900;
             color: #fff;
             text-align: center;
@@ -177,9 +174,7 @@
             transition: opacity 0.1s, transform 0.1s;
             z-index: 5;
             white-space: nowrap;
-        }
-        @media (max-width: 600px) {
-            #activation-text { font-size: 2.5rem; }
+            width: 100%;
         }
 
         #controls-hint {
@@ -190,6 +185,7 @@
             color: rgba(255, 255, 255, 0.5);
             font-size: 0.9rem;
             text-align: center;
+            width: 100%;
         }
 
         /* Mobile Controls */
@@ -214,8 +210,8 @@
             pointer-events: auto;
             border: 2px solid rgba(255,255,255,0.2);
         }
-        #stick-move { left: 40px; }
-        #stick-aim { right: 40px; }
+        #stick-move { left: 30px; }
+        #stick-aim { right: 30px; }
 
         .joystick-knob {
             width: 40px;
@@ -258,14 +254,17 @@
             border-color: #ff3333;
             color: #ff3333;
             background: rgba(50, 0, 0, 0.5);
+            font-size: 1rem;
         }
 
-        /* Swap Weapon (Above Aim Stick) */
-        .btn-swap {
+        /* Gun Icon Button (Above Aim Stick) */
+        .btn-gun-icon {
             bottom: 180px;
-            right: 40px;
+            right: 30px;
             border-color: #00ffff;
             color: #00ffff;
+            background: rgba(0, 50, 50, 0.6);
+            font-size: 1.5rem; /* Icon size */
         }
 
         /* Cheat Button (Top Right) */
@@ -277,6 +276,46 @@
             border-color: #ffd700;
             color: #ffd700;
             font-size: 0.7rem;
+        }
+
+        /* Mobile Weapon Selector Menu */
+        #mobile-weapon-menu {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(10, 10, 20, 0.95);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 100;
+            pointer-events: auto;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+        .weapon-option {
+            width: 45%;
+            height: 50px;
+            background: #222;
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .weapon-option.active-wep {
+            border-color: #00ffff;
+            background: #004444;
+            box-shadow: 0 0 10px #00ffff;
         }
 
         /* Show mobile controls on touch devices */
@@ -335,7 +374,7 @@
     <div id="main-menu" class="layer">
         <div>
             <div class="title">Neon Carnage</div>
-            <p style="text-align:center; color:#aaa; margin-bottom:30px; font-size:1.2rem;">SELECT YOUR OPERATOR</p>
+            <p style="text-align:center; color:#aaa; margin-bottom:30px; font-size:clamp(0.8rem, 3vw, 1.2rem);">SELECT YOUR OPERATOR</p>
             <div class="class-container">
                 <div class="class-card" onclick="startGame('soldier')">
                     <div class="class-icon" style="background:#fff; color:#000;">★</div>
@@ -365,6 +404,7 @@
                     </div>
                 </div>
             </div>
+            <p style="text-align: center; margin-top: 20px; color: #555; font-size: 0.8rem;">Click to Enable Audio</p>
         </div>
     </div>
 
@@ -394,7 +434,6 @@
         <br>
         <button class="cheat-btn" onclick="submitCheat()">Activate</button>
         <div id="cheat-btn-container" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px; justify-content:center;">
-             <!-- Quick buttons for mobile users who can't type easily -->
              <button style="font-size:0.7rem; padding:5px;" onclick="document.getElementById('cheat-input').value='i am god';submitCheat()">God Mode</button>
              <button style="font-size:0.7rem; padding:5px;" onclick="document.getElementById('cheat-input').value='maro sabko';submitCheat()">Chaos</button>
              <button style="font-size:0.7rem; padding:5px;" onclick="document.getElementById('cheat-input').value='flash';submitCheat()">Speed</button>
@@ -407,14 +446,18 @@
 
     <!-- Mobile Controls -->
     <div id="mobile-controls">
-        <!-- Joysticks -->
         <div id="stick-move" class="joystick-zone"><div class="joystick-knob"></div></div>
         <div id="stick-aim" class="joystick-zone"><div class="joystick-knob"></div></div>
         
-        <!-- Buttons -->
         <div class="mobile-btn btn-boom" onclick="detonateStickyBombs()">BOOM</div>
-        <div class="mobile-btn btn-swap" onclick="cycleWeapon()">SWAP</div>
+        <!-- Replaced Swap with Gun Icon -->
+        <div class="mobile-btn btn-gun-icon" onclick="toggleWeaponMenu()">🔫</div>
         <div class="mobile-btn btn-cheat-mobile" onclick="toggleCheatModal()">CHEAT</div>
+    </div>
+
+    <!-- Mobile Weapon Menu -->
+    <div id="mobile-weapon-menu">
+        <!-- JS will populate this -->
     </div>
 
     <!-- Game Over -->
@@ -436,7 +479,97 @@
         const cheatModal = document.getElementById('cheat-modal');
         const cheatInput = document.getElementById('cheat-input');
         const cheatMsg = document.getElementById('cheat-msg');
+        const mobileWeaponMenu = document.getElementById('mobile-weapon-menu');
         
+        // --- Sound Manager (Procedural Audio) ---
+        class SoundManager {
+            constructor() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.value = 0.3; // Initial volume
+                this.masterGain.connect(this.ctx.destination);
+            }
+
+            resume() {
+                if(this.ctx.state === 'suspended') this.ctx.resume();
+            }
+
+            playTone(freq, type, duration, vol=1) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            playNoise(duration, vol=1) {
+                const bufferSize = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                
+                // Add filter for "explosion" feel
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+                filter.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + duration);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterGain);
+                noise.start();
+            }
+
+            playShoot(pitch = 1) {
+                // Zap sound
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200 * pitch, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50 * pitch, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.1);
+            }
+
+            playExplosion() {
+                this.playNoise(0.5, 0.8);
+            }
+
+            playPowerup() {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(800, this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            }
+        }
+
+        let soundManager;
+
         // --- Game State & Config ---
         let width, height;
         let score = 0;
@@ -445,6 +578,7 @@
         let frameCount = 0;
         let difficultyMultiplier = 1;
         let timeScale = 1.0;
+        let gridOffset = 0; // For background animation
         
         // Cheat States
         let godMode = false;
@@ -461,7 +595,7 @@
         // Entities
         let player;
         let bullets = [];
-        let enemyBullets = []; // NEW: Enemy Projectiles
+        let enemyBullets = []; 
         let enemies = [];
         let particles = [];
         let textPopups = [];
@@ -481,6 +615,30 @@
             { name: "GRENADE", id: 8, fireRate: 45, damage: 0, speed: 10, spread: 0.1, count: 1, color: '#00ff00', ammo: 9999, recoil: 5, shake: 2, type: 'explosive' },
             { name: "STICKY BOMB", id: 9, fireRate: 30, damage: 5, speed: 12, spread: 0.05, count: 1, color: '#0088ff', ammo: 9999, recoil: 4, shake: 1, type: 'sticky' }
         ];
+
+        // --- Populate Mobile Weapon Menu ---
+        function initMobileMenu() {
+            mobileWeaponMenu.innerHTML = '';
+            WEAPONS.forEach((w, idx) => {
+                const div = document.createElement('div');
+                div.className = 'weapon-option';
+                div.innerText = w.name;
+                div.style.borderLeft = `5px solid ${w.color}`;
+                div.onclick = () => {
+                    switchWeapon(idx);
+                    toggleWeaponMenu();
+                };
+                mobileWeaponMenu.appendChild(div);
+            });
+            // Add close button at bottom
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'weapon-option';
+            closeBtn.style.width = '100%';
+            closeBtn.style.background = '#330000';
+            closeBtn.innerText = 'CLOSE';
+            closeBtn.onclick = toggleWeaponMenu;
+            mobileWeaponMenu.appendChild(closeBtn);
+        }
 
         // --- Classes ---
 
@@ -594,6 +752,8 @@
             shoot() {
                 const w = this.getCurrentWeapon();
                 this.lastShot = frameCount;
+
+                if(soundManager) soundManager.playShoot(1.0 + Math.random()*0.2); // Random pitch
 
                 this.vx -= Math.cos(this.angle) * (w.recoil * 0.1) * timeScale;
                 this.vy -= Math.sin(this.angle) * (w.recoil * 0.1) * timeScale;
@@ -808,6 +968,7 @@
 
             die() {
                 this.dead = true;
+                if(soundManager) soundManager.playExplosion();
                 for (let i = 0; i < 15; i++) {
                     const speed = Math.random() * 5;
                     const ang = Math.random() * Math.PI * 2;
@@ -932,6 +1093,8 @@
         }
 
         function init() {
+            soundManager = new SoundManager(); // Initialize audio ctx
+            initMobileMenu();
             resize();
             window.addEventListener('resize', resize);
             
@@ -948,14 +1111,21 @@
                 mouse.x = e.clientX - rect.left;
                 mouse.y = e.clientY - rect.top;
             });
-            window.addEventListener('mousedown', () => mouse.down = true);
+            window.addEventListener('mousedown', () => {
+                mouse.down = true;
+                if(soundManager) soundManager.resume();
+            });
             window.addEventListener('mouseup', () => mouse.down = false);
+            window.addEventListener('touchstart', () => {
+                if(soundManager) soundManager.resume();
+            });
 
             setupMobileControls();
             loop(); // Start loop but stay in menu state
         }
 
         function startGame(skin) {
+            if(soundManager) soundManager.resume();
             gameState = 'playing';
             mainMenu.style.display = 'none';
             uiLayer.style.display = 'flex';
@@ -1020,11 +1190,36 @@
             else enemies.push(new Enemy('chaser'));
         }
 
+        function drawGrid() {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            gridOffset = (gridOffset + 0.5) % 50; // Move grid
+            
+            ctx.beginPath();
+            // Vertical lines
+            for (let x = gridOffset; x < width; x += 50) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+            }
+            // Horizontal lines
+            for (let y = gridOffset; y < height; y += 50) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
         function loop() {
             requestAnimationFrame(loop);
             
-            // Clear Screen
-            ctx.fillStyle = '#111';
+            // Clear Screen (transparent to show CSS background)
+            ctx.clearRect(0,0,width,height);
+            
+            // Draw retro grid
+            drawGrid();
+
             let shakeX = 0, shakeY = 0;
             if (shakeIntensity > 0) {
                 shakeX = (Math.random() - 0.5) * shakeIntensity * 2;
@@ -1034,7 +1229,6 @@
             }
             ctx.save();
             ctx.translate(shakeX, shakeY);
-            ctx.fillRect(-10, -10, width + 20, height + 20);
 
             // Draw Splatters
             for (let s of splatters) {
@@ -1167,15 +1361,28 @@
             if (player.weaponIndex === index) return;
             player.weaponIndex = index;
             updateUI();
+            if(soundManager) soundManager.playPowerup();
             timeScale = 0.1; 
             actText.innerText = WEAPONS[index].name + " ACTIVATED";
             actText.style.opacity = 1; actText.style.transform = "translate(-50%, -50%) scale(1.5)";
             setTimeout(() => { actText.style.opacity = 0; actText.style.transform = "translate(-50%, -50%) scale(1)"; }, 800);
+            
+            // Highlight active in mobile menu
+            const opts = mobileWeaponMenu.querySelectorAll('.weapon-option');
+            opts.forEach((o, i) => {
+                if(i === index) o.classList.add('active-wep');
+                else o.classList.remove('active-wep');
+            });
         }
 
-        function cycleWeapon() {
-            let nextIdx = (player.weaponIndex + 1) % WEAPONS.length;
-            switchWeapon(nextIdx);
+        function toggleWeaponMenu() {
+            if(mobileWeaponMenu.style.display === 'flex') {
+                mobileWeaponMenu.style.display = 'none';
+                isPaused = false;
+            } else {
+                mobileWeaponMenu.style.display = 'flex';
+                isPaused = true;
+            }
         }
 
         function detonateStickyBombs() {
@@ -1188,7 +1395,11 @@
                     bullets.splice(i, 1); detonated = true;
                 }
             }
-            if (detonated) { shakeIntensity += 10; createPopup(player.x, player.y - 50, "DETONATION!", "#0088ff"); }
+            if (detonated) { 
+                shakeIntensity += 10; 
+                if(soundManager) soundManager.playExplosion();
+                createPopup(player.x, player.y - 50, "DETONATION!", "#0088ff"); 
+            }
         }
 
         // Cheats
@@ -1206,6 +1417,7 @@
             else if (code === "rapid") { rapidFire = !rapidFire; msg = rapidFire ? "RAPID FIRE ON" : "RAPID FIRE OFF"; color = "#ffaa00"; }
             else if (code === "one tap") { instaKill = !instaKill; msg = instaKill ? "INSTA-KILL ON" : "INSTA-KILL OFF"; color = "#ff3333"; }
             cheatMsg.innerText = msg; cheatMsg.style.color = color;
+            if(soundManager && msg.includes("ON")) soundManager.playPowerup();
         }
 
         function setupMobileControls() {
