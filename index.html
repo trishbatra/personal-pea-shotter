@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Carnage: Total Chaos</title>
+    <title>Neon Carnage: Adrenaline Optimized</title>
     <style>
         body {
             margin: 0;
@@ -11,6 +11,8 @@
             background-color: #050505;
             background-image: 
                 radial-gradient(circle at 50% 50%, rgba(20, 20, 30, 1) 0%, rgba(0, 0, 0, 1) 100%);
+            background-size: cover;
+            background-attachment: fixed;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             touch-action: none;
@@ -33,7 +35,20 @@
             flex-direction: column;
         }
 
-        /* Main Menu */
+        /* Pulse Vignette for Adrenaline */
+        #vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            transition: box-shadow 0.1s;
+            z-index: 5;
+        }
+
+        /* Main Menu - Scrollable */
         #main-menu {
             background: rgba(0,0,0,0.95);
             pointer-events: auto;
@@ -41,14 +56,24 @@
             align-items: center;
             z-index: 20;
             display: flex;
+            overflow-y: auto;
+            padding: 20px 0;
         }
+        #menu-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: min-content; 
+            padding: 20px;
+        }
+
         .title {
-            font-size: clamp(2rem, 10vw, 5rem); /* Responsive Font Size */
+            font-size: clamp(2rem, 10vw, 5rem);
             color: #ff3333;
             text-transform: uppercase;
             letter-spacing: 0.2em;
             text-shadow: 0 0 30px #ff0000;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
             text-align: center;
             line-height: 1.2;
         }
@@ -58,6 +83,7 @@
             gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
+            margin-bottom: 20px;
         }
         .class-card {
             width: 200px;
@@ -70,6 +96,7 @@
             transition: all 0.2s;
             background: rgba(255, 255, 255, 0.05);
             pointer-events: auto;
+            flex-shrink: 0; 
         }
         .class-card:hover, .class-card:active {
             transform: translateY(-10px);
@@ -96,7 +123,7 @@
             justify-content: space-between;
             padding: 20px;
             box-sizing: border-box;
-            display: none; /* Hidden on menu */
+            display: none; 
         }
         .top-bar {
             display: flex;
@@ -163,7 +190,6 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            /* Responsive Font scaling */
             font-size: clamp(2rem, 8vw, 6rem); 
             font-weight: 900;
             color: #fff;
@@ -225,7 +251,6 @@
             pointer-events: none;
         }
 
-        /* Mobile Action Buttons */
         .mobile-btn {
             position: absolute;
             width: 60px;
@@ -244,7 +269,6 @@
         }
         .mobile-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
 
-        /* Boom Button (Bottom Center) */
         .btn-boom {
             bottom: 40px;
             left: 50%;
@@ -257,17 +281,15 @@
             font-size: 1rem;
         }
 
-        /* Gun Icon Button (Above Aim Stick) */
         .btn-gun-icon {
             bottom: 180px;
             right: 30px;
             border-color: #00ffff;
             color: #00ffff;
             background: rgba(0, 50, 50, 0.6);
-            font-size: 1.5rem; /* Icon size */
+            font-size: 1.5rem; 
         }
 
-        /* Cheat Button (Top Right) */
         .btn-cheat-mobile {
             top: 80px;
             right: 20px;
@@ -278,7 +300,6 @@
             font-size: 0.7rem;
         }
 
-        /* Mobile Weapon Selector Menu */
         #mobile-weapon-menu {
             display: none;
             position: absolute;
@@ -318,7 +339,6 @@
             box-shadow: 0 0 10px #00ffff;
         }
 
-        /* Show mobile controls on touch devices */
         @media (hover: none) and (pointer: coarse) {
             #mobile-controls { display: block; }
             #controls-hint { display: none; }
@@ -369,10 +389,13 @@
 <body>
 
     <canvas id="gameCanvas"></canvas>
+    
+    <!-- Pulse Effect Overlay -->
+    <div id="vignette"></div>
 
     <!-- Main Menu -->
     <div id="main-menu" class="layer">
-        <div>
+        <div id="menu-content">
             <div class="title">Neon Carnage</div>
             <p style="text-align:center; color:#aaa; margin-bottom:30px; font-size:clamp(0.8rem, 3vw, 1.2rem);">SELECT YOUR OPERATOR</p>
             <div class="class-container">
@@ -450,7 +473,6 @@
         <div id="stick-aim" class="joystick-zone"><div class="joystick-knob"></div></div>
         
         <div class="mobile-btn btn-boom" onclick="detonateStickyBombs()">BOOM</div>
-        <!-- Replaced Swap with Gun Icon -->
         <div class="mobile-btn btn-gun-icon" onclick="toggleWeaponMenu()">🔫</div>
         <div class="mobile-btn btn-cheat-mobile" onclick="toggleCheatModal()">CHEAT</div>
     </div>
@@ -480,53 +502,52 @@
         const cheatInput = document.getElementById('cheat-input');
         const cheatMsg = document.getElementById('cheat-msg');
         const mobileWeaponMenu = document.getElementById('mobile-weapon-menu');
+        const vignette = document.getElementById('vignette');
         
-        // --- Sound Manager (Procedural Audio) ---
+        // --- Sound Manager (Improved Audio) ---
         class SoundManager {
             constructor() {
                 this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 this.masterGain = this.ctx.createGain();
-                this.masterGain.gain.value = 0.3; // Initial volume
+                this.masterGain.gain.value = 0.3;
                 this.masterGain.connect(this.ctx.destination);
+                
+                this.beatTimer = null;
+                this.measure = 0;
             }
 
             resume() {
                 if(this.ctx.state === 'suspended') this.ctx.resume();
             }
 
-            playTone(freq, type, duration, vol=1) {
+            playKick() {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+                gain.gain.setValueAtTime(1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
                 osc.connect(gain);
                 gain.connect(this.masterGain);
                 osc.start();
-                osc.stop(this.ctx.currentTime + duration);
+                osc.stop(this.ctx.currentTime + 0.5);
             }
 
-            playNoise(duration, vol=1) {
-                const bufferSize = this.ctx.sampleRate * duration;
+            playSnare() {
+                const bufferSize = this.ctx.sampleRate * 0.1; 
                 const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
                 const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = Math.random() * 2 - 1;
-                }
-
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                
                 const noise = this.ctx.createBufferSource();
                 noise.buffer = buffer;
-                const gain = this.ctx.createGain();
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                
-                // Add filter for "explosion" feel
                 const filter = this.ctx.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
-                filter.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + duration);
+                filter.type = 'highpass';
+                filter.frequency.value = 1000;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
 
                 noise.connect(filter);
                 filter.connect(gain);
@@ -534,15 +555,34 @@
                 noise.start();
             }
 
+            startBGM() {
+                if(this.beatTimer) clearInterval(this.beatTimer);
+                const tempo = 120; 
+                const interval = (60 / tempo) * 1000 / 2;
+                
+                this.beatTimer = setInterval(() => {
+                    if (this.measure % 4 === 0 || this.measure % 4 === 2) this.playKick();
+                    if (this.measure % 4 === 2) this.playSnare();
+                    if (this.measure % 8 === 7) this.playKick();
+                    this.measure++;
+                }, interval);
+            }
+
+            stopBGM() {
+                if(this.beatTimer) clearInterval(this.beatTimer);
+            }
+
+            // Cooler "Pew Pew" Sound (Sawtooth wave)
             playShoot(pitch = 1) {
-                // Zap sound
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(200 * pitch, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50 * pitch, this.ctx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                osc.type = 'triangle'; // Smoother tone
+                osc.frequency.setValueAtTime(600 * pitch, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100 * pitch, this.ctx.currentTime + 0.1);
+                
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                
                 osc.connect(gain);
                 gain.connect(this.masterGain);
                 osc.start();
@@ -550,7 +590,26 @@
             }
 
             playExplosion() {
-                this.playNoise(0.5, 0.8);
+                const duration = 0.3;
+                const bufferSize = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+                filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + duration);
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterGain);
+                noise.start();
             }
 
             playPowerup() {
@@ -573,26 +632,24 @@
         // --- Game State & Config ---
         let width, height;
         let score = 0;
-        let gameState = 'menu'; // menu, playing, gameover
+        let gameState = 'menu';
         let isPaused = false;
         let frameCount = 0;
         let difficultyMultiplier = 1;
         let timeScale = 1.0;
-        let gridOffset = 0; // For background animation
+        let gridOffset = 0;
+        let adrenalineLevel = 0; // Visual effect
         
-        // Cheat States
         let godMode = false;
         let chaosMode = false; 
         let superSpeed = false; 
         let rapidFire = false; 
         let instaKill = false; 
 
-        // Input State
         const keys = { w: false, a: false, s: false, d: false };
         const mouse = { x: 0, y: 0, down: false };
         let shakeIntensity = 0;
 
-        // Entities
         let player;
         let bullets = [];
         let enemyBullets = []; 
@@ -616,7 +673,17 @@
             { name: "STICKY BOMB", id: 9, fireRate: 30, damage: 5, speed: 12, spread: 0.05, count: 1, color: '#0088ff', ammo: 9999, recoil: 4, shake: 1, type: 'sticky' }
         ];
 
-        // --- Populate Mobile Weapon Menu ---
+        function hexToRgba(hex, alpha) {
+            let c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){ c= [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+                c= '0x'+c.join('');
+                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+            }
+            return hex; 
+        }
+
         function initMobileMenu() {
             mobileWeaponMenu.innerHTML = '';
             WEAPONS.forEach((w, idx) => {
@@ -624,13 +691,9 @@
                 div.className = 'weapon-option';
                 div.innerText = w.name;
                 div.style.borderLeft = `5px solid ${w.color}`;
-                div.onclick = () => {
-                    switchWeapon(idx);
-                    toggleWeaponMenu();
-                };
+                div.onclick = () => { switchWeapon(idx); toggleWeaponMenu(); };
                 mobileWeaponMenu.appendChild(div);
             });
-            // Add close button at bottom
             const closeBtn = document.createElement('div');
             closeBtn.className = 'weapon-option';
             closeBtn.style.width = '100%';
@@ -640,161 +703,70 @@
             mobileWeaponMenu.appendChild(closeBtn);
         }
 
-        // --- Classes ---
-
         class Player {
             constructor(skin) {
-                this.x = width / 2;
-                this.y = height / 2;
-                this.radius = 15;
-                this.angle = 0;
-                this.weaponIndex = 0;
-                this.lastShot = 0;
-                this.vx = 0;
-                this.vy = 0;
+                this.x = width / 2; this.y = height / 2;
+                this.radius = 15; this.angle = 0; this.weaponIndex = 0; this.lastShot = 0;
+                this.vx = 0; this.vy = 0;
                 this.inventory = WEAPONS.map(w => ({ ...w })); 
                 this.skin = skin;
-
-                // Skin Stats
-                if (skin === 'soldier') {
-                    this.speed = 4;
-                    this.maxHp = 100;
-                    this.color = '#ffffff';
-                } else if (skin === 'heavy') {
-                    this.speed = 2.5;
-                    this.maxHp = 200;
-                    this.color = '#00ff00';
-                    this.radius = 18;
-                } else if (skin === 'scout') {
-                    this.speed = 6.5;
-                    this.maxHp = 60;
-                    this.color = '#00ffff';
-                    this.radius = 12;
-                }
+                if (skin === 'soldier') { this.speed = 4; this.maxHp = 100; this.color = '#ffffff'; }
+                else if (skin === 'heavy') { this.speed = 2.5; this.maxHp = 200; this.color = '#00ff00'; this.radius = 18; }
+                else if (skin === 'scout') { this.speed = 6.5; this.maxHp = 60; this.color = '#00ffff'; this.radius = 12; }
                 this.hp = this.maxHp;
             }
-
             update() {
                 let dx = 0, dy = 0;
-                if (keys.w) dy -= 1;
-                if (keys.s) dy += 1;
-                if (keys.a) dx -= 1;
-                if (keys.d) dx += 1;
-
+                if (keys.w) dy -= 1; if (keys.s) dy += 1;
+                if (keys.a) dx -= 1; if (keys.d) dx += 1;
                 if (dx !== 0 || dy !== 0) {
                     const length = Math.sqrt(dx*dx + dy*dy);
-                    dx /= length;
-                    dy /= length;
+                    dx /= length; dy /= length;
                 }
-                
                 let currentSpeed = this.speed;
                 if (superSpeed) currentSpeed *= 3;
-
-                this.vx += dx * 0.8 * timeScale;
-                this.vy += dy * 0.8 * timeScale;
-                this.vx *= 0.85;
-                this.vy *= 0.85;
-
-                this.x += this.vx * currentSpeed * timeScale;
-                this.y += this.vy * currentSpeed * timeScale;
+                this.vx += dx * 0.8 * timeScale; this.vy += dy * 0.8 * timeScale;
+                this.vx *= 0.85; this.vy *= 0.85;
+                this.x += this.vx * currentSpeed * timeScale; this.y += this.vy * currentSpeed * timeScale;
                 this.x = Math.max(this.radius, Math.min(width - this.radius, this.x));
                 this.y = Math.max(this.radius, Math.min(height - this.radius, this.y));
-
                 this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
-
                 let fireRate = this.getCurrentWeapon().fireRate;
                 if (rapidFire) fireRate = 2;
-
-                if (mouse.down && frameCount - this.lastShot > fireRate) {
-                    this.shoot();
-                }
+                if (mouse.down && frameCount - this.lastShot > fireRate) this.shoot();
             }
-
             draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
-                
-                if (godMode) {
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = '#ffd700';
-                    ctx.fillStyle = '#ffd700';
-                } else {
-                    ctx.fillStyle = this.color;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = this.color;
-                }
-                
-                // Draw Body shape based on skin
-                if (this.skin === 'heavy') {
-                    ctx.fillRect(-this.radius, -this.radius, this.radius*2, this.radius*2); // Square
-                } else if (this.skin === 'scout') {
-                    ctx.beginPath(); // Triangle
-                    ctx.moveTo(this.radius, 0);
-                    ctx.lineTo(-this.radius, this.radius);
-                    ctx.lineTo(-this.radius, -this.radius);
-                    ctx.fill();
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                ctx.fillStyle = this.getCurrentWeapon().color;
-                ctx.fillRect(5, -4, 25, 8); // Gun
-                ctx.restore();
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                if (godMode) { ctx.shadowBlur = 20; ctx.shadowColor = '#ffd700'; ctx.fillStyle = '#ffd700'; }
+                else { ctx.fillStyle = this.color; ctx.shadowBlur = 15; ctx.shadowColor = this.color; }
+                if (this.skin === 'heavy') ctx.fillRect(-this.radius, -this.radius, this.radius*2, this.radius*2);
+                else if (this.skin === 'scout') { ctx.beginPath(); ctx.moveTo(this.radius, 0); ctx.lineTo(-this.radius, this.radius); ctx.lineTo(-this.radius, -this.radius); ctx.fill(); }
+                else { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill(); }
+                ctx.fillStyle = this.getCurrentWeapon().color; ctx.fillRect(5, -4, 25, 8); ctx.restore();
             }
-
-            getCurrentWeapon() {
-                return this.inventory[this.weaponIndex];
-            }
-
+            getCurrentWeapon() { return this.inventory[this.weaponIndex]; }
             shoot() {
                 const w = this.getCurrentWeapon();
                 this.lastShot = frameCount;
-
-                if(soundManager) soundManager.playShoot(1.0 + Math.random()*0.2); // Random pitch
-
+                if(soundManager) soundManager.playShoot(1.0 + Math.random()*0.2);
                 this.vx -= Math.cos(this.angle) * (w.recoil * 0.1) * timeScale;
                 this.vy -= Math.sin(this.angle) * (w.recoil * 0.1) * timeScale;
                 shakeIntensity = w.shake;
-
-                let count = w.count;
-                let spread = w.spread;
-                
-                if (chaosMode) {
-                    count = Math.max(10, count * 3);
-                    spread = Math.PI / 2;
-                }
-
+                let count = w.count; let spread = w.spread;
+                if (chaosMode) { count = Math.max(10, count * 3); spread = Math.PI / 2; }
                 for (let i = 0; i < count; i++) {
                     const spreadAngle = (Math.random() - 0.5) * spread;
                     const bulletAngle = this.angle + spreadAngle;
-                    bullets.push(new Bullet(
-                        this.x + Math.cos(this.angle) * 20,
-                        this.y + Math.sin(this.angle) * 20,
-                        Math.cos(bulletAngle) * w.speed,
-                        Math.sin(bulletAngle) * w.speed,
-                        w, false // isEnemy
-                    ));
+                    bullets.push(new Bullet(this.x + Math.cos(this.angle)*20, this.y + Math.sin(this.angle)*20, Math.cos(bulletAngle)*w.speed, Math.sin(bulletAngle)*w.speed, w, false));
                 }
             }
-
             takeDamage(amount) {
                 if (godMode) return;
-                this.hp -= amount;
-                shakeIntensity = 5;
+                this.hp -= amount; shakeIntensity = 5;
                 const flash = document.createElement('div');
-                flash.style.position = 'absolute';
-                flash.style.top = '0';
-                flash.style.left = '0';
-                flash.style.width = '100%';
-                flash.style.height = '100%';
-                flash.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
-                flash.style.pointerEvents = 'none';
-                document.body.appendChild(flash);
-                setTimeout(() => flash.remove(), 50);
-
+                flash.style.position = 'absolute'; flash.style.top = '0'; flash.style.left = '0'; flash.style.width = '100%'; flash.style.height = '100%';
+                flash.style.backgroundColor = 'rgba(255, 0, 0, 0.3)'; flash.style.pointerEvents = 'none';
+                document.body.appendChild(flash); setTimeout(() => flash.remove(), 50);
                 if (this.hp <= 0) gameOver();
                 updateUI();
             }
@@ -802,117 +774,43 @@
 
         class Enemy {
             constructor(type) {
-                // Spawn logic
                 const edge = Math.floor(Math.random() * 4);
                 if (edge === 0) { this.x = Math.random() * width; this.y = -50; }
                 if (edge === 1) { this.x = width + 50; this.y = Math.random() * height; }
                 if (edge === 2) { this.x = Math.random() * width; this.y = height + 50; }
                 if (edge === 3) { this.x = -50; this.y = Math.random() * height; }
-
-                this.type = type;
-                this.vx = 0;
-                this.vy = 0;
-                this.dead = false;
-                this.lastShot = frameCount + Math.random() * 60; // Random offset
-                
-                // --- Enemy Stats ---
-                if (type === 'chaser') {
-                    this.speed = 3;
-                    this.hp = 30 * difficultyMultiplier;
-                    this.radius = 12;
-                    this.color = '#ff4444';
-                    this.scoreVal = 10;
-                    this.behavior = 'melee';
-                } else if (type === 'dasher') {
-                    this.speed = 6;
-                    this.hp = 15 * difficultyMultiplier;
-                    this.radius = 8;
-                    this.color = '#ffaa00';
-                    this.scoreVal = 20;
-                    this.behavior = 'melee';
-                } else if (type === 'tank') {
-                    this.speed = 1.5;
-                    this.hp = 150 * difficultyMultiplier;
-                    this.radius = 25;
-                    this.color = '#aa00aa';
-                    this.scoreVal = 50;
-                    this.behavior = 'melee';
-                } else if (type === 'gunner') {
-                    this.speed = 2;
-                    this.hp = 40 * difficultyMultiplier;
-                    this.radius = 15;
-                    this.color = '#aa00ff';
-                    this.scoreVal = 30;
-                    this.behavior = 'ranged';
-                    this.fireRate = 120; // Frames
-                } else if (type === 'shotgunner') {
-                    this.speed = 1.8;
-                    this.hp = 60 * difficultyMultiplier;
-                    this.radius = 18;
-                    this.color = '#ff00aa';
-                    this.scoreVal = 40;
-                    this.behavior = 'ranged';
-                    this.fireRate = 180;
-                } else if (type === 'spinner') {
-                    this.speed = 1;
-                    this.hp = 100 * difficultyMultiplier;
-                    this.radius = 20;
-                    this.color = '#ffffff';
-                    this.scoreVal = 100;
-                    this.behavior = 'special';
-                    this.rotation = 0;
-                }
+                this.type = type; this.vx = 0; this.vy = 0; this.dead = false;
+                this.lastShot = frameCount + Math.random() * 60;
+                if (type === 'chaser') { this.speed = 3; this.hp = 30 * difficultyMultiplier; this.radius = 12; this.color = '#ff4444'; this.scoreVal = 10; this.behavior = 'melee'; }
+                else if (type === 'dasher') { this.speed = 6; this.hp = 15 * difficultyMultiplier; this.radius = 8; this.color = '#ffaa00'; this.scoreVal = 20; this.behavior = 'melee'; }
+                else if (type === 'tank') { this.speed = 1.5; this.hp = 150 * difficultyMultiplier; this.radius = 25; this.color = '#aa00aa'; this.scoreVal = 50; this.behavior = 'melee'; }
+                else if (type === 'gunner') { this.speed = 2; this.hp = 40 * difficultyMultiplier; this.radius = 15; this.color = '#aa00ff'; this.scoreVal = 30; this.behavior = 'ranged'; this.fireRate = 120; }
+                else if (type === 'shotgunner') { this.speed = 1.8; this.hp = 60 * difficultyMultiplier; this.radius = 18; this.color = '#ff00aa'; this.scoreVal = 40; this.behavior = 'ranged'; this.fireRate = 180; }
+                else if (type === 'spinner') { this.speed = 1; this.hp = 100 * difficultyMultiplier; this.radius = 20; this.color = '#ffffff'; this.scoreVal = 100; this.behavior = 'special'; this.rotation = 0; }
             }
-
             update() {
                 if (this.dead) return;
-                
-                const dx = player.x - this.x;
-                const dy = player.y - this.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
+                const dx = player.x - this.x; const dy = player.y - this.y;
                 const angle = Math.atan2(dy, dx);
-
-                // --- Movement ---
                 let targetSpeed = this.speed;
-                
-                // Gunner/Shotgunner try to maintain distance
-                if ((this.type === 'gunner' || this.type === 'shotgunner') && dist < 250) {
-                    targetSpeed = -1; // Back up slowly
-                }
-
-                this.vx += Math.cos(angle) * targetSpeed * 0.1;
-                this.vy += Math.sin(angle) * targetSpeed * 0.1;
-                
-                // Separation
+                if ((this.type === 'gunner' || this.type === 'shotgunner') && Math.hypot(dx,dy) < 250) targetSpeed = -1;
+                this.vx += Math.cos(angle) * targetSpeed * 0.1; this.vy += Math.sin(angle) * targetSpeed * 0.1;
                 for (let other of enemies) {
                     if (other === this || other.dead) continue;
-                    const odx = this.x - other.x;
-                    const ody = this.y - other.y;
+                    const odx = this.x - other.x; const ody = this.y - other.y;
                     const odist = Math.sqrt(odx*odx + ody*ody);
                     if (odist < this.radius + other.radius) {
-                        const force = 0.05;
-                        this.vx += (odx / odist) * force;
-                        this.vy += (ody / odist) * force;
+                        const force = 0.05; this.vx += (odx / odist) * force; this.vy += (ody / odist) * force;
                     }
                 }
-
-                // Friction
-                this.vx *= 0.9;
-                this.vy *= 0.9;
-                
-                this.x += this.vx * timeScale;
-                this.y += this.vy * timeScale;
-
-                // --- Shooting Logic ---
+                this.vx *= 0.9; this.vy *= 0.9;
+                this.x += this.vx * timeScale; this.y += this.vy * timeScale;
                 if (this.behavior === 'ranged' && frameCount > this.lastShot + this.fireRate / (difficultyMultiplier)) {
-                    this.shoot(angle);
-                    this.lastShot = frameCount;
+                    this.shoot(angle); this.lastShot = frameCount;
                 }
-
                 if (this.type === 'spinner') {
                     this.rotation += 0.1;
                     if (frameCount % 10 === 0) {
-                        // Shoot 4 directions
                         for(let k=0; k<4; k++) {
                             let shootAng = this.rotation + (k * (Math.PI/2));
                             enemyBullets.push(new Bullet(this.x, this.y, Math.cos(shootAng)*4, Math.sin(shootAng)*4, {damage:10, color:'#ff0000', type:'enemy_basic'}, true));
@@ -920,144 +818,79 @@
                     }
                 }
             }
-
             shoot(angle) {
-                if (this.type === 'gunner') {
-                    // Shoot single fast projectile
-                    enemyBullets.push(new Bullet(this.x, this.y, Math.cos(angle)*6, Math.sin(angle)*6, {damage:15, color:'#aa00ff', type:'enemy_basic'}, true));
-                } else if (this.type === 'shotgunner') {
-                    // Shoot 3 spread
+                if (this.type === 'gunner') enemyBullets.push(new Bullet(this.x, this.y, Math.cos(angle)*6, Math.sin(angle)*6, {damage:15, color:'#aa00ff', type:'enemy_basic'}, true));
+                else if (this.type === 'shotgunner') {
                     for(let i=-1; i<=1; i++) {
                         let a = angle + i * 0.3;
                         enemyBullets.push(new Bullet(this.x, this.y, Math.cos(a)*5, Math.sin(a)*5, {damage:10, color:'#ff00aa', type:'enemy_basic'}, true));
                     }
                 }
             }
-
             draw() {
                 if (this.dead) return;
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = this.color;
-                ctx.fillStyle = this.color;
+                // Optimization: Don't draw if off-screen
+                if(this.x < -50 || this.x > width+50 || this.y < -50 || this.y > height+50) return;
 
-                if (this.type === 'chaser') {
-                    ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#000'; ctx.fillRect(-5, -3, 3, 3); ctx.fillRect(2, -3, 3, 3); // Eyes
-                } else if (this.type === 'dasher') {
-                    ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-5, 5); ctx.lineTo(-5, -5); ctx.fill();
-                } else if (this.type === 'tank') {
-                    ctx.fillRect(-this.radius, -this.radius, this.radius*2, this.radius*2);
-                } else if (this.type === 'gunner') {
-                    ctx.beginPath(); ctx.moveTo(this.radius, 0); ctx.lineTo(-this.radius/2, this.radius); ctx.lineTo(-this.radius/2, -this.radius); ctx.fill();
-                    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill(); // Hole
-                } else if (this.type === 'shotgunner') {
-                    ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI, true); ctx.fill(); // Semicircle
-                    ctx.fillRect(-this.radius, 0, this.radius*2, 10);
-                } else if (this.type === 'spinner') {
-                    ctx.rotate(this.rotation);
-                    ctx.fillRect(-15, -15, 30, 30);
-                    ctx.strokeStyle = '#ff0000';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(30, 0); ctx.moveTo(0, -30); ctx.lineTo(0, 30); ctx.stroke();
-                }
-
+                ctx.save(); ctx.translate(this.x, this.y); ctx.shadowBlur = 5; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+                if (this.type === 'chaser') { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillRect(-5, -3, 3, 3); ctx.fillRect(2, -3, 3, 3); }
+                else if (this.type === 'dasher') { ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-5, 5); ctx.lineTo(-5, -5); ctx.fill(); }
+                else if (this.type === 'tank') { ctx.fillRect(-this.radius, -this.radius, this.radius*2, this.radius*2); }
+                else if (this.type === 'gunner') { ctx.beginPath(); ctx.moveTo(this.radius, 0); ctx.lineTo(-this.radius/2, this.radius); ctx.lineTo(-this.radius/2, -this.radius); ctx.fill(); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill(); }
+                else if (this.type === 'shotgunner') { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI, true); ctx.fill(); ctx.fillRect(-this.radius, 0, this.radius*2, 10); }
+                else if (this.type === 'spinner') { ctx.rotate(this.rotation); ctx.fillRect(-15, -15, 30, 30); ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(30, 0); ctx.moveTo(0, -30); ctx.lineTo(0, 30); ctx.stroke(); }
                 ctx.restore();
             }
-
             die() {
                 this.dead = true;
                 if(soundManager) soundManager.playExplosion();
-                for (let i = 0; i < 15; i++) {
-                    const speed = Math.random() * 5;
-                    const ang = Math.random() * Math.PI * 2;
-                    particles.push(new Particle(this.x, this.y, Math.cos(ang) * speed, Math.sin(ang) * speed, this.color, 3 + Math.random() * 3, 60));
+                for (let i = 0; i < 8; i++) { // Optimization: Reduced particles
+                    const speed = Math.random() * 5; const ang = Math.random() * Math.PI * 2;
+                    particles.push(new Particle(this.x, this.y, Math.cos(ang) * speed, Math.sin(ang) * speed, this.color, 3 + Math.random() * 3, 40));
                 }
-                splatters.push({x: this.x, y: this.y, r: this.radius * 2, color: this.color.replace(')', ',0.4)').replace('rgb', 'rgba').replace('#', 'rgba(')}); // Rough color conversion or just use red
-                if (splatters.length > 100) splatters.shift();
+                const bloodColor = hexToRgba(this.color, 0.5);
+                splatters.push({x: this.x, y: this.y, r: this.radius * 1.5, color: bloodColor, life: 300}); // Optimization: Blood fades
                 score += this.scoreVal;
                 document.getElementById('score').innerText = `SCORE: ${score}`;
+                // Trigger pulse
+                triggerVignette();
             }
         }
 
         class Bullet {
             constructor(x, y, vx, vy, weaponRef, isEnemy) {
-                this.x = x;
-                this.y = y;
-                this.vx = vx;
-                this.vy = vy;
-                this.isEnemy = isEnemy;
+                this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.isEnemy = isEnemy;
                 this.damage = isEnemy ? weaponRef.damage : (instaKill ? 9999 : weaponRef.damage);
-                this.color = weaponRef.color;
-                this.type = weaponRef.type;
+                this.color = weaponRef.color; this.type = weaponRef.type;
                 this.life = this.type === 'fire' ? 30 : 100;
-                this.radius = this.type === 'explosive' || this.type === 'molotov' ? 6 : (isEnemy ? 5 : 3); // Enemy bullets bigger
+                this.radius = this.type === 'explosive' || this.type === 'molotov' ? 6 : (isEnemy ? 5 : 3);
                 if(this.type === 'pierce') this.radius = 2;
-                this.attachedTo = null; 
-                this.attachOffset = {x:0, y:0};
+                this.attachedTo = null; this.attachOffset = {x:0, y:0};
             }
-
             update() {
                 if (this.attachedTo) {
                     if (this.attachedTo.dead) this.attachedTo = null;
-                    else {
-                        this.x = this.attachedTo.x + this.attachOffset.x;
-                        this.y = this.attachedTo.y + this.attachOffset.y;
-                        return;
-                    }
+                    else { this.x = this.attachedTo.x + this.attachOffset.x; this.y = this.attachedTo.y + this.attachOffset.y; return; }
                 }
-                this.x += this.vx * timeScale;
-                this.y += this.vy * timeScale;
-                this.life -= 1 * timeScale;
-                
-                if (this.type === 'fire') {
-                    this.vx *= 0.9; this.vy *= 0.9;
-                    if(Math.random()<0.3) particles.push(new Particle(this.x, this.y, 0, -1, this.color, Math.random()*10, 20));
-                }
-                if (this.type !== 'sticky' && Math.random() < 0.3) {
-                     particles.push(new Particle(this.x, this.y, 0, 0, this.color, 0.5, 10));
-                }
+                this.x += this.vx * timeScale; this.y += this.vy * timeScale; this.life -= 1 * timeScale;
+                if (this.type === 'fire') { this.vx *= 0.9; this.vy *= 0.9; }
             }
-
             draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
-                ctx.fillStyle = this.color;
-                
-                if (this.isEnemy) {
-                    // Enemy bullet visual
-                    ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill();
-                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-                } else if (this.type === 'pierce') {
-                    ctx.rotate(Math.atan2(this.vy, this.vx)); ctx.fillRect(-20, -1, 40, 2);
-                } else if (this.type === 'sticky') {
-                     ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
-                     if (Math.floor(Date.now() / 200) % 2 === 0) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI*2); ctx.fill(); }
-                } else {
-                    ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill();
-                }
+                if(this.x < 0 || this.x > width || this.y < 0 || this.y > height) return; // Opt: Skip offscreen
+                ctx.save(); ctx.translate(this.x, this.y); ctx.shadowBlur = 5; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+                if (this.isEnemy) { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); }
+                else if (this.type === 'pierce') { ctx.rotate(Math.atan2(this.vy, this.vx)); ctx.fillRect(-20, -1, 40, 2); }
+                else if (this.type === 'sticky') { ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill(); if (Math.floor(Date.now() / 200) % 2 === 0) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI*2); ctx.fill(); } }
+                else { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); }
                 ctx.restore();
             }
         }
 
         class FireZone {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.radius = 40; this.life = 180;
-            }
+            constructor(x, y) { this.x = x; this.y = y; this.radius = 40; this.life = 180; }
             update() {
                 this.life -= 1 * timeScale;
-                if(Math.random() < 0.5) particles.push(new Particle(this.x + (Math.random()-0.5)*this.radius, this.y + (Math.random()-0.5)*this.radius, 0, -1 - Math.random(), '#ff4400', 5+Math.random()*5, 30));
-                if (frameCount % 10 === 0) {
-                    enemies.forEach(e => {
-                        if(Math.hypot(e.x - this.x, e.y - this.y) < this.radius + e.radius) {
-                            e.hp -= 5; createPopup(e.x, e.y-10, "BURN", "#ff4400");
-                            if(e.hp<=0) e.die();
-                        }
-                    });
-                }
+                if (frameCount % 10 === 0) enemies.forEach(e => { if(Math.hypot(e.x - this.x, e.y - this.y) < this.radius + e.radius) { e.hp -= 5; if(e.hp<=0) e.die(); } });
             }
             draw() {
                 ctx.save(); ctx.translate(this.x, this.y); ctx.globalAlpha = 0.3; ctx.fillStyle = '#ff2200';
@@ -1071,7 +904,7 @@
             }
             update() {
                 this.x += this.vx * timeScale; this.y += this.vy * timeScale; this.life -= 1 * timeScale;
-                this.vx *= 0.95; this.vy *= 0.95;
+                this.vx *= 0.9; this.vy *= 0.9;
             }
             draw() {
                 ctx.globalAlpha = this.life / this.maxLife; ctx.fillStyle = this.color;
@@ -1079,26 +912,15 @@
             }
         }
 
-        function createPopup(x, y, text, color) {
-            textPopups.push({x, y, text, color, life: 60, vy: -1});
-        }
-
-        // --- Core Functions ---
+        function createPopup(x, y, text, color) { textPopups.push({x, y, text, color, life: 60, vy: -1}); }
 
         function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
+            width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height;
         }
 
         function init() {
-            soundManager = new SoundManager(); // Initialize audio ctx
-            initMobileMenu();
-            resize();
+            soundManager = new SoundManager(); initMobileMenu(); resize();
             window.addEventListener('resize', resize);
-            
-            // Input Listeners
             window.addEventListener('keydown', handleKeydown);
             window.addEventListener('keyup', e => {
                 if (e.key === 'w' || e.key === 'ArrowUp') keys.w = false;
@@ -1106,118 +928,83 @@
                 if (e.key === 's' || e.key === 'ArrowDown') keys.s = false;
                 if (e.key === 'd' || e.key === 'ArrowRight') keys.d = false;
             });
-            window.addEventListener('mousemove', e => {
-                const rect = canvas.getBoundingClientRect();
-                mouse.x = e.clientX - rect.left;
-                mouse.y = e.clientY - rect.top;
-            });
-            window.addEventListener('mousedown', () => {
-                mouse.down = true;
-                if(soundManager) soundManager.resume();
-            });
+            window.addEventListener('mousemove', e => { const rect = canvas.getBoundingClientRect(); mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top; });
+            window.addEventListener('mousedown', () => { mouse.down = true; if(soundManager) soundManager.resume(); });
             window.addEventListener('mouseup', () => mouse.down = false);
-            window.addEventListener('touchstart', () => {
-                if(soundManager) soundManager.resume();
-            });
-
+            window.addEventListener('touchstart', () => { if(soundManager) soundManager.resume(); });
             setupMobileControls();
-            loop(); // Start loop but stay in menu state
+            loop();
         }
 
         function startGame(skin) {
-            if(soundManager) soundManager.resume();
-            gameState = 'playing';
-            mainMenu.style.display = 'none';
-            uiLayer.style.display = 'flex';
-            gameOverScreen.style.display = 'none';
-            
-            player = new Player(skin);
-            bullets = [];
-            enemyBullets = [];
-            enemies = [];
-            particles = [];
-            splatters = [];
-            fireZones = [];
-            score = 0;
-            difficultyMultiplier = 1;
-            
+            if(soundManager) { soundManager.resume(); soundManager.startBGM(); }
+            gameState = 'playing'; mainMenu.style.display = 'none'; uiLayer.style.display = 'flex'; gameOverScreen.style.display = 'none';
+            player = new Player(skin); bullets = []; enemyBullets = []; enemies = []; particles = []; splatters = []; fireZones = []; score = 0; difficultyMultiplier = 1;
             updateUI();
         }
 
         function returnToMenu() {
-            gameState = 'menu';
-            mainMenu.style.display = 'flex';
-            uiLayer.style.display = 'none';
-            gameOverScreen.style.display = 'none';
+            if(soundManager) soundManager.stopBGM();
+            gameState = 'menu'; mainMenu.style.display = 'flex'; uiLayer.style.display = 'none'; gameOverScreen.style.display = 'none';
         }
 
         function handleKeydown(e) {
-            if (isPaused) {
-                if (e.key === 'Escape') toggleCheatModal();
-                if (e.key === 'Enter') submitCheat();
-                return;
-            }
+            if (isPaused) { if (e.key === 'Escape') toggleCheatModal(); if (e.key === 'Enter') submitCheat(); return; }
             if (e.key === 'c' || e.key === 'C') { toggleCheatModal(); return; }
             if (gameState !== 'playing') return;
-
             if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
             if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = true;
             if (e.key === 's' || e.key === 'ArrowDown') keys.s = true;
             if (e.key === 'd' || e.key === 'ArrowRight') keys.d = true;
             if (e.key === 'g' || e.key === 'G') detonateStickyBombs();
-
             const num = parseInt(e.key);
-            if (!isNaN(num)) {
-                let idx = -1;
-                if (num >= 1 && num <= 9) idx = num - 1;
-                if (num === 0) idx = 9; 
-                if (idx !== -1 && idx < WEAPONS.length) switchWeapon(idx);
-            }
+            if (!isNaN(num)) { let idx = -1; if (num >= 1 && num <= 9) idx = num - 1; if (num === 0) idx = 9; if (idx !== -1 && idx < WEAPONS.length) switchWeapon(idx); }
         }
 
-        // --- Game Logic Updates ---
-
         function spawnEnemy() {
-            const chance = Math.random();
-            const scoreFactor = Math.min(1.0, score / 15000);
-            
-            // Progressive Difficulty
-            if (score > 2000 && chance < 0.1) enemies.push(new Enemy('gunner'));
-            else if (score > 4000 && chance < 0.05) enemies.push(new Enemy('shotgunner'));
-            else if (score > 6000 && chance < 0.02) enemies.push(new Enemy('spinner'));
-            else if (chance < 0.05 + scoreFactor * 0.1) enemies.push(new Enemy('tank'));
-            else if (chance < 0.2 + scoreFactor * 0.2) enemies.push(new Enemy('dasher'));
-            else enemies.push(new Enemy('chaser'));
+            // Optimization: Hard cap on enemies to prevent lag
+            if (enemies.length > 80) return; 
+
+            let count = 1;
+            if (chaosMode || godMode) count = 3; 
+            for(let i=0; i<count; i++) {
+                const chance = Math.random(); const scoreFactor = Math.min(1.0, score / 15000);
+                if (score > 2000 && chance < 0.1) enemies.push(new Enemy('gunner'));
+                else if (score > 4000 && chance < 0.05) enemies.push(new Enemy('shotgunner'));
+                else if (score > 6000 && chance < 0.02) enemies.push(new Enemy('spinner'));
+                else if (chance < 0.05 + scoreFactor * 0.1) enemies.push(new Enemy('tank'));
+                else if (chance < 0.2 + scoreFactor * 0.2) enemies.push(new Enemy('dasher'));
+                else enemies.push(new Enemy('chaser'));
+            }
         }
 
         function drawGrid() {
             ctx.save();
+            let speed = 0.5;
+            // FIX: Check if player exists before accessing properties
+            if (player) {
+                speed += (Math.abs(player.vx) + Math.abs(player.vy)) * 0.5;
+            }
+            if (superSpeed) speed *= 2;
+            
             ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
             ctx.lineWidth = 1;
-            gridOffset = (gridOffset + 0.5) % 50; // Move grid
-            
+            gridOffset = (gridOffset + speed) % 50; 
             ctx.beginPath();
-            // Vertical lines
-            for (let x = gridOffset; x < width; x += 50) {
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-            }
-            // Horizontal lines
-            for (let y = gridOffset; y < height; y += 50) {
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-            }
+            for (let x = gridOffset; x < width; x += 50) { ctx.moveTo(x, 0); ctx.lineTo(x, height); }
+            for (let y = gridOffset; y < height; y += 50) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
             ctx.stroke();
             ctx.restore();
         }
 
+        function triggerVignette() {
+            vignette.style.boxShadow = "inset 0 0 150px rgba(255, 0, 50, 0.8)";
+            setTimeout(() => { vignette.style.boxShadow = "inset 0 0 100px rgba(0,0,0,0.8)"; }, 100);
+        }
+
         function loop() {
             requestAnimationFrame(loop);
-            
-            // Clear Screen (transparent to show CSS background)
             ctx.clearRect(0,0,width,height);
-            
-            // Draw retro grid
             drawGrid();
 
             let shakeX = 0, shakeY = 0;
@@ -1227,65 +1014,52 @@
                 shakeIntensity *= 0.9;
                 if (shakeIntensity < 0.5) shakeIntensity = 0;
             }
-            ctx.save();
-            ctx.translate(shakeX, shakeY);
+            ctx.save(); ctx.translate(shakeX, shakeY);
 
-            // Draw Splatters
-            for (let s of splatters) {
-                ctx.fillStyle = s.color || 'rgba(100,0,0,0.4)';
-                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+            // Optimization: Limit splatters
+            if (splatters.length > 30) splatters.shift();
+            for (let i = splatters.length - 1; i >= 0; i--) {
+                let s = splatters[i];
+                s.life--;
+                if(s.life <= 0) { splatters.splice(i, 1); continue; }
+                ctx.globalAlpha = s.life / 300;
+                ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1.0;
             }
 
-            if (gameState !== 'playing' || isPaused) {
-                ctx.restore();
-                return;
-            }
-
-            // Time recovery
+            if (gameState !== 'playing' || isPaused) { ctx.restore(); return; }
             if (timeScale < 1.0) { timeScale += 0.02; if(timeScale > 1.0) timeScale = 1.0; }
 
             frameCount++;
-            player.update();
-            player.draw();
+            player.update(); player.draw();
 
-            // Spawning
             const spawnRate = Math.max(15, 60 - Math.floor(score / 500));
-            if (frameCount % Math.floor(spawnRate / timeScale) === 0) spawnEnemy();
+            let currentSpawnRate = Math.floor(spawnRate / timeScale);
+            if (chaosMode) currentSpawnRate = Math.max(5, Math.floor(currentSpawnRate / 2)); 
+            if (frameCount % currentSpawnRate === 0) spawnEnemy();
             difficultyMultiplier = 1 + (score / 2000);
 
-            // Update Zones
-            for(let i=fireZones.length-1; i>=0; i--){
-                fireZones[i].update(); fireZones[i].draw(); if(fireZones[i].life <= 0) fireZones.splice(i,1);
-            }
+            for(let i=fireZones.length-1; i>=0; i--){ fireZones[i].update(); fireZones[i].draw(); if(fireZones[i].life <= 0) fireZones.splice(i,1); }
 
-            // Update Player Bullets
             for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.update(); b.draw();
-                
+                let b = bullets[i]; b.update(); b.draw();
                 if (!b.attachedTo && (b.x < 0 || b.x > width || b.y < 0 || b.y > height || b.life <= 0)) {
-                    if (b.type === 'molotov') {
-                        fireZones.push(new FireZone(b.x, b.y));
-                        for(let k=0; k<10; k++) particles.push(new Particle(b.x, b.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, '#ff4400', 4, 20));
-                    }
+                    if (b.type === 'molotov') { fireZones.push(new FireZone(b.x, b.y)); }
                     bullets.splice(i, 1); continue;
                 }
-
                 let hit = false;
                 for (let j = enemies.length - 1; j >= 0; j--) {
-                    let e = enemies[j];
-                    if (e.dead) continue;
+                    let e = enemies[j]; if (e.dead) continue;
                     if (b.attachedTo === e) continue; 
                     if (Math.hypot(b.x - e.x, b.y - e.y) < e.radius + b.radius) {
-                        if (b.type === 'sticky') {
-                            b.attachedTo = e; b.attachOffset = { x: b.x - e.x, y: b.y - e.y }; b.vx = 0; b.vy = 0; hit = false; break; 
-                        }
+                        if (b.type === 'sticky') { b.attachedTo = e; b.attachOffset = { x: b.x - e.x, y: b.y - e.y }; b.vx = 0; b.vy = 0; hit = false; break; }
                         if (b.type === 'molotov') { fireZones.push(new FireZone(b.x, b.y)); hit = true; }
                         else {
                             e.hp -= b.damage;
-                            particles.push(new Particle(b.x, b.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, '#fff', 2, 5));
+                            // Optimization: Fewer particles on hit
+                            if(Math.random() > 0.5) particles.push(new Particle(b.x, b.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, '#fff', 2, 5));
                             if (b.type === 'explosive') {
-                                for(let k=0; k<20; k++) particles.push(new Particle(b.x, b.y, (Math.random()-0.5)*10, (Math.random()-0.5)*10, '#ffaa00', 4, 20));
+                                for(let k=0; k<10; k++) particles.push(new Particle(b.x, b.y, (Math.random()-0.5)*10, (Math.random()-0.5)*10, '#ffaa00', 4, 20));
                                 enemies.forEach(subE => { if(Math.hypot(subE.x - b.x, subE.y - b.y) < 100) subE.hp -= 50; });
                                 shakeIntensity += 5; hit = true; 
                             } else if (b.type !== 'pierce') hit = true;
@@ -1297,94 +1071,54 @@
                 if (hit) bullets.splice(i, 1);
             }
 
-            // Update Enemy Bullets
             for (let i = enemyBullets.length - 1; i >= 0; i--) {
-                let b = enemyBullets[i];
-                b.update(); b.draw();
-                
-                if (b.x < 0 || b.x > width || b.y < 0 || b.y > height || b.life <= 0) {
-                    enemyBullets.splice(i, 1); continue;
-                }
-                
+                let b = enemyBullets[i]; b.update(); b.draw();
+                if (b.x < 0 || b.x > width || b.y < 0 || b.y > height || b.life <= 0) { enemyBullets.splice(i, 1); continue; }
                 if (Math.hypot(b.x - player.x, b.y - player.y) < player.radius + b.radius) {
-                    player.takeDamage(b.damage);
-                    particles.push(new Particle(player.x, player.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, '#ff0000', 3, 10));
+                    player.takeDamage(b.damage); particles.push(new Particle(player.x, player.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, '#ff0000', 3, 10));
                     enemyBullets.splice(i, 1);
                 }
             }
 
-            // Update Enemies
             for (let i = enemies.length - 1; i >= 0; i--) {
-                let e = enemies[i];
-                if(e.dead) { enemies.splice(i, 1); continue; }
+                let e = enemies[i]; if(e.dead) { enemies.splice(i, 1); continue; }
                 e.update(); e.draw();
-
-                // Player Collision
                 if (Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
-                    player.takeDamage(5); // Contact damage
-                    const angle = Math.atan2(e.y - player.y, e.x - player.x);
-                    e.vx += Math.cos(angle) * 5; e.vy += Math.sin(angle) * 5; // Knockback
+                    player.takeDamage(5); const angle = Math.atan2(e.y - player.y, e.x - player.x);
+                    e.vx += Math.cos(angle) * 5; e.vy += Math.sin(angle) * 5; 
                 }
             }
 
-            // Particles & Popups
-            for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update(); particles[i].draw(); if (particles[i].life <= 0) particles.splice(i, 1);
-            }
+            // Optimization: Hard limit on particles
+            if(particles.length > 150) particles.splice(0, particles.length - 150);
+            for (let i = particles.length - 1; i >= 0; i--) { particles[i].update(); particles[i].draw(); if (particles[i].life <= 0) particles.splice(i, 1); }
+            
             ctx.textAlign = 'center'; ctx.font = 'bold 20px Arial';
             for (let i = textPopups.length - 1; i >= 0; i--) {
                 let p = textPopups[i]; p.y += p.vy * timeScale; p.life -= 1 * timeScale;
                 ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 60; ctx.fillText(p.text, p.x, p.y);
                 ctx.globalAlpha = 1.0; if(p.life <= 0) textPopups.splice(i, 1);
             }
-
             ctx.restore();
         }
 
         // --- Helpers ---
         function updateUI() {
-            const w = player.getCurrentWeapon();
-            document.getElementById('weapon-name').innerText = w.name;
-            document.getElementById('weapon-name').style.color = w.color;
-            document.getElementById('weapon-name').style.textShadow = `0 0 10px ${w.color}`;
-            const hpPct = Math.max(0, (player.hp / player.maxHp) * 100);
-            document.getElementById('health-bar').style.width = hpPct + '%';
+            const w = player.getCurrentWeapon(); document.getElementById('weapon-name').innerText = w.name; document.getElementById('weapon-name').style.color = w.color; document.getElementById('weapon-name').style.textShadow = `0 0 10px ${w.color}`;
+            const hpPct = Math.max(0, (player.hp / player.maxHp) * 100); document.getElementById('health-bar').style.width = hpPct + '%';
         }
-
-        function gameOver() {
-            gameState = 'gameover';
-            document.getElementById('final-score').innerText = score;
-            gameOverScreen.style.display = 'flex';
-        }
-
+        function gameOver() { if(soundManager) soundManager.stopBGM(); gameState = 'gameover'; document.getElementById('final-score').innerText = score; gameOverScreen.style.display = 'flex'; }
         function switchWeapon(index) {
-            if (player.weaponIndex === index) return;
-            player.weaponIndex = index;
-            updateUI();
+            if (player.weaponIndex === index) return; player.weaponIndex = index; updateUI();
             if(soundManager) soundManager.playPowerup();
-            timeScale = 0.1; 
-            actText.innerText = WEAPONS[index].name + " ACTIVATED";
-            actText.style.opacity = 1; actText.style.transform = "translate(-50%, -50%) scale(1.5)";
+            timeScale = 0.1; actText.innerText = WEAPONS[index].name + " ACTIVATED"; actText.style.opacity = 1; actText.style.transform = "translate(-50%, -50%) scale(1.5)";
             setTimeout(() => { actText.style.opacity = 0; actText.style.transform = "translate(-50%, -50%) scale(1)"; }, 800);
-            
-            // Highlight active in mobile menu
             const opts = mobileWeaponMenu.querySelectorAll('.weapon-option');
-            opts.forEach((o, i) => {
-                if(i === index) o.classList.add('active-wep');
-                else o.classList.remove('active-wep');
-            });
+            opts.forEach((o, i) => { if(i === index) o.classList.add('active-wep'); else o.classList.remove('active-wep'); });
         }
-
         function toggleWeaponMenu() {
-            if(mobileWeaponMenu.style.display === 'flex') {
-                mobileWeaponMenu.style.display = 'none';
-                isPaused = false;
-            } else {
-                mobileWeaponMenu.style.display = 'flex';
-                isPaused = true;
-            }
+            if(mobileWeaponMenu.style.display === 'flex') { mobileWeaponMenu.style.display = 'none'; isPaused = false; } else { mobileWeaponMenu.style.display = 'flex'; isPaused = true; }
         }
-
         function detonateStickyBombs() {
             let detonated = false;
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -1395,22 +1129,13 @@
                     bullets.splice(i, 1); detonated = true;
                 }
             }
-            if (detonated) { 
-                shakeIntensity += 10; 
-                if(soundManager) soundManager.playExplosion();
-                createPopup(player.x, player.y - 50, "DETONATION!", "#0088ff"); 
-            }
+            if (detonated) { shakeIntensity += 10; if(soundManager) soundManager.playExplosion(); createPopup(player.x, player.y - 50, "DETONATION!", "#0088ff"); }
         }
-
-        // Cheats
         function toggleCheatModal() {
-            isPaused = !isPaused;
-            if (isPaused) { cheatModal.style.display = 'block'; cheatInput.value = ''; cheatMsg.innerText = ''; if(window.innerWidth > 600) cheatInput.focus(); }
-            else { cheatModal.style.display = 'none'; }
+            isPaused = !isPaused; if (isPaused) { cheatModal.style.display = 'block'; cheatInput.value = ''; cheatMsg.innerText = ''; if(window.innerWidth > 600) cheatInput.focus(); } else { cheatModal.style.display = 'none'; }
         }
         function submitCheat() {
-            const code = cheatInput.value.toLowerCase().trim();
-            let msg = "Invalid Code"; let color = "red";
+            const code = cheatInput.value.toLowerCase().trim(); let msg = "Invalid Code"; let color = "red";
             if (code === "i am god") { godMode = !godMode; msg = godMode ? "GOD MODE ON" : "GOD MODE OFF"; color = "#ffd700"; }
             else if (code === "maro sabko") { chaosMode = !chaosMode; msg = chaosMode ? "CHAOS MODE ACTIVATED" : "CHAOS MODE OFF"; color = "#ff00ff"; }
             else if (code === "flash") { superSpeed = !superSpeed; msg = superSpeed ? "SUPER SPEED ON" : "SUPER SPEED OFF"; color = "#00ffff"; }
@@ -1419,11 +1144,8 @@
             cheatMsg.innerText = msg; cheatMsg.style.color = color;
             if(soundManager && msg.includes("ON")) soundManager.playPowerup();
         }
-
         function setupMobileControls() {
-            // Simplified for brevity, same as before
-            const moveStick = document.getElementById('stick-move');
-            const aimStick = document.getElementById('stick-aim');
+            const moveStick = document.getElementById('stick-move'); const aimStick = document.getElementById('stick-aim');
             const handleJoystick = (element, knob, onMove, onEnd) => {
                 let startX, startY;
                 const touchStart = (e) => { const t = e.changedTouches[0]; startX = t.clientX; startY = t.clientY; };
@@ -1441,7 +1163,6 @@
             handleJoystick(moveStick, moveStick.querySelector('.joystick-knob'), (x, y) => { keys.w = y<-0.3; keys.s = y>0.3; keys.a = x<-0.3; keys.d = x>0.3; }, () => { keys.w=keys.s=keys.a=keys.d=false; });
             handleJoystick(aimStick, aimStick.querySelector('.joystick-knob'), (x, y) => { mouse.x = player.x + x*200; mouse.y = player.y + y*200; mouse.down = (Math.abs(x)>0.2||Math.abs(y)>0.2); }, () => mouse.down=false);
         }
-
         init();
     </script>
 </body>
