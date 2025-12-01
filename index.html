@@ -219,7 +219,7 @@
         #cheat-modal {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.95); border: 2px solid #ffd700; padding: 30px; z-index: 100;
-            border-radius: 10px; width: 85%; max-width: 400px; text-align: center; pointer-events: auto;
+            border-radius: 10px; width: 90%; max-width: 600px; text-align: center; pointer-events: auto;
         }
         #cheat-input {
             width: 100%; padding: 15px; background: #222; border: 1px solid #444;
@@ -330,6 +330,11 @@
             <button class="qc-btn" onclick="applyCheat('ghost')">GHOST</button>
             <button class="qc-btn" onclick="applyCheat('tiny')">TINY</button>
             <button class="qc-btn" onclick="applyCheat('rich')">RICH</button>
+            <button class="qc-btn" onclick="applyCheat('invisible')">INVISIBLE</button>
+            <button class="qc-btn" onclick="applyCheat('magnet')">MAGNET</button>
+            <button class="qc-btn" onclick="applyCheat('homing')">HOMING</button>
+            <button class="qc-btn" onclick="applyCheat('titan')">TITAN</button>
+            <button class="qc-btn" onclick="applyCheat('plague')">PLAGUE</button>
         </div>
         <button onclick="toggleCheatModal()" style="margin-top:20px; background:none; border:1px solid #555; color:#aaa; width:100%; padding:10px;">CLOSE</button>
     </div>
@@ -382,6 +387,7 @@
         let godMode = false, chaosMode = false, superSpeed = false, rapidFire = false, instaKill = false, matrixMode = false;
         // New Cheats
         let freezeMode = false, bounceMode = false, ghostMode = false, tinyMode = false;
+        let invisibleMode = false, magnetMode = false, homingMode = false, titanMode = false, plagueMode = false;
 
         // Input
         const keys = { w: false, a: false, s: false, d: false };
@@ -496,8 +502,10 @@
             }
 
             update() {
-                // Cheat: Tiny
-                this.radius = tinyMode ? 8 : (this.skin==='heavy'?18:(this.skin==='scout'?12:15));
+                // Cheat: Tiny & Titan
+                let baseR = (this.skin==='heavy'?18:(this.skin==='scout'?12:15));
+                if (titanMode) baseR *= 2;
+                this.radius = tinyMode ? 8 : baseR;
 
                 // Buffs
                 if(this.powerupTimers.speed > 0) this.powerupTimers.speed--;
@@ -544,10 +552,10 @@
                 ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
                 // Powerup Glow
                 if(this.powerupTimers.quad > 0) { ctx.shadowBlur = 30; ctx.shadowColor = '#ff00ff'; }
-                else if(godMode) { ctx.shadowBlur = 30; ctx.shadowColor = '#ffd700'; }
+                else if(godMode || titanMode) { ctx.shadowBlur = 30; ctx.shadowColor = '#ffd700'; }
                 else { ctx.shadowBlur = 15; ctx.shadowColor = this.color; }
                 
-                ctx.fillStyle = godMode ? '#ffd700' : this.color;
+                ctx.fillStyle = (godMode || titanMode) ? '#ffd700' : this.color;
                 
                 if (this.skin === 'heavy') ctx.fillRect(-this.radius, -this.radius, this.radius*2, this.radius*2);
                 else if (this.skin === 'scout') { ctx.beginPath(); ctx.moveTo(this.radius, 0); ctx.lineTo(-this.radius, this.radius); ctx.lineTo(-this.radius, -this.radius); ctx.fill(); }
@@ -625,13 +633,27 @@
                 if (freezeMode) return; // Cheat: Freeze
 
                 const dx = player.x - this.x; const dy = player.y - this.y;
+                const dist = Math.hypot(dx, dy);
                 let angle = Math.atan2(dy, dx);
-                if (ghostMode) angle += Math.PI; // Cheat: Ghost (flee)
+                if (ghostMode || invisibleMode) {
+                   // If invisible, just random wander or stay still? Random wander better.
+                   if(invisibleMode) {
+                       angle = Math.random() * Math.PI * 2; // jittery
+                   } else {
+                       angle += Math.PI; // Cheat: Ghost (flee)
+                   }
+                }
+
+                // Plague mode check
+                if (plagueMode && dist < player.radius + this.radius + 50) {
+                    this.die();
+                    return;
+                }
 
                 let targetSpeed = this.speed;
                 if (matrixMode) targetSpeed *= 0.2; // Slow down enemies
 
-                if ((this.type === 'gunner' || this.type === 'shotgunner') && Math.hypot(dx,dy) < 250 && !ghostMode) targetSpeed = -1;
+                if ((this.type === 'gunner' || this.type === 'shotgunner') && dist < 250 && !ghostMode && !invisibleMode) targetSpeed = -1;
 
                 this.vx += Math.cos(angle) * targetSpeed * 0.1;
                 this.vy += Math.sin(angle) * targetSpeed * 0.1;
@@ -647,10 +669,10 @@
                 this.vx *= 0.9; this.vy *= 0.9;
                 this.x += this.vx * timeScale; this.y += this.vy * timeScale;
 
-                if (this.behavior === 'ranged' && frameCount > this.lastShot + this.fireRate / difficultyMultiplier) {
+                if (this.behavior === 'ranged' && frameCount > this.lastShot + this.fireRate / difficultyMultiplier && !invisibleMode) {
                     this.shoot(angle); this.lastShot = frameCount;
                 }
-                if (this.type === 'spinner') {
+                if (this.type === 'spinner' && !invisibleMode) {
                     this.rotation += 0.1;
                     if (frameCount % 10 === 0) {
                         for(let k=0; k<4; k++) {
@@ -730,7 +752,15 @@
             if(timeScale < 1) timeScale += 0.01;
             frameCount++;
             
-            if(enemies.length < CONFIG.maxEnemies) spawnEnemy();
+            // Fix for flood: Only spawn if freezeMode is OFF
+            // Also slow down spawn if matrix mode is on
+            if(enemies.length < CONFIG.maxEnemies && !freezeMode) {
+                 let currentSpawnRate = Math.max(15, 60 - Math.floor(score/500));
+                 if (chaosMode) currentSpawnRate = 5;
+                 if (matrixMode) currentSpawnRate *= 3; // Spawn slower in matrix mode
+                 
+                 if(frameCount % Math.floor(currentSpawnRate) === 0) spawnEnemy();
+            }
 
             player.update();
             player.draw();
@@ -738,7 +768,7 @@
             for(let i=enemies.length-1; i>=0; i--) {
                 const e = enemies[i]; e.update(); e.draw();
                 if(Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
-                    player.takeDamage(10);
+                    if (!godMode && !plagueMode) player.takeDamage(10);
                     const ang = Math.atan2(e.y - player.y, e.x - player.x);
                     e.x += Math.cos(ang)*20; e.y += Math.sin(ang)*20;
                 }
@@ -748,6 +778,14 @@
             for(let i=powerups.length-1; i>=0; i--) {
                 const p = powerups[i];
                 p.life--;
+                
+                // Magnet logic
+                if (magnetMode) {
+                     const ang = Math.atan2(player.y - p.y, player.x - p.x);
+                     p.x += Math.cos(ang) * 5;
+                     p.y += Math.sin(ang) * 5;
+                }
+
                 ctx.fillStyle = p.color;
                 ctx.shadowBlur = 10; ctx.shadowColor = p.color;
                 ctx.fillRect(p.x-10, p.y-10, 20, 20);
@@ -766,6 +804,22 @@
             for(let i=bullets.length-1; i>=0; i--) {
                 const b = bullets[i];
                 b.x += b.vx * timeScale; b.y += b.vy * timeScale; b.life -= 1 * timeScale;
+                
+                // Homing logic
+                if (homingMode && !b.isEnemy && b.type !== 'pierce') {
+                     let nearest = null; let minDst = 300;
+                     enemies.forEach(e => {
+                         let d = Math.hypot(e.x - b.x, e.y - b.y);
+                         if(d < minDst) { minDst = d; nearest = e; }
+                     });
+                     if(nearest) {
+                         const ang = Math.atan2(nearest.y - b.y, nearest.x - b.x);
+                         // simple steering
+                         b.vx = b.vx * 0.9 + Math.cos(ang) * 2; 
+                         b.vy = b.vy * 0.9 + Math.sin(ang) * 2;
+                     }
+                }
+
                 ctx.fillStyle = b.color; ctx.shadowBlur = 5; ctx.shadowColor = b.color;
                 ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
 
@@ -940,8 +994,13 @@
             if(val === 'ghost') { ghostMode = !ghostMode; msg = "GHOST"; col = "#aaaaaa"; }
             if(val === 'tiny') { tinyMode = !tinyMode; msg = "TINY"; col = "#ffffff"; }
             if(val === 'rich') { score += 100000; msg = "RICH"; col = "#ffff00"; }
+            if(val === 'invisible') { invisibleMode = !invisibleMode; msg = "INVISIBLE"; col = "#4444ff"; }
+            if(val === 'magnet') { magnetMode = !magnetMode; msg = "MAGNET"; col = "#ff00ff"; }
+            if(val === 'homing') { homingMode = !homingMode; msg = "HOMING"; col = "#00ffaa"; }
+            if(val === 'titan') { titanMode = !titanMode; msg = "TITAN"; col = "#ff4400"; if(titanMode) { player.maxHp=500; player.hp=500; } else { player.maxHp=100; player.hp=100; } }
+            if(val === 'plague') { plagueMode = !plagueMode; msg = "PLAGUE"; col = "#00aa00"; }
 
-            const txt = document.getElementById('cheat-msg'); txt.innerText = msg + (msg.includes("INVALID") || val==='nuke' || val==='rich' ? "" : (godMode || chaosMode || superSpeed || rapidFire || instaKill || matrixMode || freezeMode || bounceMode || ghostMode || tinyMode ? " ON" : " OFF")); txt.style.color = col;
+            const txt = document.getElementById('cheat-msg'); txt.innerText = msg + (msg.includes("INVALID") || val==='nuke' || val==='rich' ? "" : (godMode || chaosMode || superSpeed || rapidFire || instaKill || matrixMode || freezeMode || bounceMode || ghostMode || tinyMode || invisibleMode || magnetMode || homingMode || titanMode || plagueMode ? " ON" : " OFF")); txt.style.color = col;
             if(col !== "red") { showPopup(msg, col); toggleCheatModal(); }
         }
 
